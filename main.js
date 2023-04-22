@@ -1,2 +1,5 @@
-console.log(42);
-document.getElementById('foo').innerText = 'foo';
+/*
+ * types
+ */
+const W = 8;
+const H = 8;
