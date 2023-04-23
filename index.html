@@ -1,3 +1,73 @@
-<p id="foo"></p>
+<div id="board"></div>
 
 <script src="main.js"></script>
+<script>
+    const board = createBoard()
+    putInitStones(board)
+
+    let player = 'B'
+
+    function render() {
+        const table = document.getElementById('board')
+        table.innerHTML = ''
+        for (const points of takeAll(board, _ => true)) {
+            const tr = document.createElement('div')
+            tr.className = 'row'
+            for (const point of points) {
+                const td = document.createElement('div')
+                const cell = board[point.y][point.x]
+                td.className = cell === 'N' ? `cell hover-${player}` : `cell fixed-${cell}`
+                td.addEventListener('click', _ => {
+                    if (put(board, point, player)) {
+                        player = getNextPlayer(board, player)
+                        render()
+                    }
+                })
+                tr.appendChild(td)
+            }
+            table.appendChild(tr)
+        }
+    }
+
+    render()
+</script>
+<style>
+    #board {
+        width: 254px;
+        display: flex;
+        flex-direction: column;
+        row-gap: 2px;
+        border: 5px solid black;
+        cursor: pointer;
+    }
+
+    div .row {
+        display: flex;
+        flex-direction: row;
+        column-gap: 2px;
+    }
+
+    div .cell {
+        width: 30px;
+        height: 30px;
+        background-color: darkgreen;
+    }
+
+    div .hover-B:hover {
+        background-color: darkseagreen;
+        content: url('./image/black.png');
+    }
+
+    div .hover-W:hover {
+        background-color: darkseagreen;
+        content: url('./image/white.png');
+    }
+
+    div .fixed-B {
+        content: url('./image/black.png');
+    }
+
+    div .fixed-W {
+        content: url('./image/white.png');
+    }
+</style>

@@ -55,10 +55,10 @@ function getRounds(p: Point): Point[] {
     return directions.map(d => next(p, d))
 }
 
-function takeAll(b: Board, pred: (c: Cell) => boolean): Point[] {
-    return range(1, W + 1).flatMap(
-        x => range(1, H + 1).map(y => ({x: x, y: y}))
-    ).filter(p => pred(b[p.y][p.x]))
+function takeAll(b: Board, pred: (c: Cell) => boolean): Point[][] {
+    return range(1, W + 1).map(
+        x => range(1, H + 1).map(y => ({x: x, y: y})).filter(p => pred(b[p.y][p.x]))
+    )
 }
 
 function take(b: Board, p: Point, d: Direction): Point[] {
@@ -77,7 +77,7 @@ function next(p: Point, d: Direction): Point {
 function sliceOn<T>(ts: T[], pred: (t: T) => boolean): T[][] {
     const bs = ts.map(pred)
     const i = bs.indexOf(true)
-    return i == -1 ? [[]] : [ts.slice(0, i), ts.slice(i + 1)]
+    return i === -1 ? [[]] : [ts.slice(0, i), ts.slice(i + 1)]
 }
 
 /*
@@ -132,7 +132,7 @@ assertEquals(sliceOn([1, 2, 3, 4, 5], n => n === 6), [[]], 'sliceOn: must be emp
 /*
  * 石を初期配置する
  */
-function putInitStones(b: Board) {
+function putInitStones(b: Board):void {
     b[4][4] = 'W'
     b[4][5] = 'B'
     b[5][4] = 'B'
@@ -157,7 +157,7 @@ function put(b: Board, p: Point, ownStone: Stone): boolean {
  * 全ての石の Point[] を作り、その周囲の Point[] を作り、そこに 1 つでも次の手番で置けるセルがあれば交代する
  */
 function getNextPlayer(b: Board, current: Player): Player {
-    return takeAll(b, c => ['B', 'W'].includes(c))
+    return takeAll(b, c => ['B', 'W'].includes(c)).flat()
         .flatMap(getRounds)
         .some(p => canPut(b, p, change(current)))
         ? change(current) : current;
@@ -183,81 +183,3 @@ function getReversiblePoints(b: Board, p: Point, ownStone: Stone): Point[] {
             ? surroundPs : [];
     })
 }
-
-/*
- * debug
- */
-
-// setup
-
-const board = createBoard()
-let player = 'B' as Player
-
-putInitStones(board)
-
-for (const r of board) {
-    console.log(r.map(c => c === 'N' ? ' ' : c).join(''))
-}
-console.log(`next player: ${player}\n`)
-
-// turn
-
-put(board, {x: 4, y: 3}, player)
-
-for (const r of board) {
-    console.log(r.map(c => c === 'N' ? ' ' : c).join(''))
-}
-
-player = getNextPlayer(board, player)
-console.log(`next player: ${player}\n`)
-
-// turn
-
-put(board, {x: 3, y: 5}, player)
-
-for (const r of board) {
-    console.log(r.map(c => c === 'N' ? ' ' : c).join(''))
-}
-
-player = getNextPlayer(board, player)
-console.log(`next player: ${player}\n`)
-
-// out
-
-/*
-    GGGGGGGGGG
-    G        G
-    G        G
-    G        G
-    G   WB   G
-    G   BW   G
-    G        G
-    G        G
-    G        G
-    GGGGGGGGGG
-    next player: B
-
-    GGGGGGGGGG
-    G        G
-    G        G
-    G   B    G
-    G   BB   G
-    G   BW   G
-    G        G
-    G        G
-    G        G
-    GGGGGGGGGG
-    next player: W
-
-    GGGGGGGGGG
-    G        G
-    G        G
-    G   B    G
-    G   BB   G
-    G  WWW   G
-    G        G
-    G        G
-    G        G
-    GGGGGGGGGG
-    next player: B
- */
